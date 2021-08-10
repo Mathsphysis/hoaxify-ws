@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "cross-env NODE_ENV=test jest",
     "start": "nodemon index.js",
     "lint": "eslint . --fix"
   },
@@ -12,8 +12,15 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^7.0.3",
+    "eslint": "^7.2.0",
+    "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.21.5",
+    "eslint-plugin-react-hooks": "^1.7.0",
     "jest": "^27.0.6",
     "prettier": "^2.3.2",
     "supertest": "^6.1.4"
@@ -21,8 +28,12 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "eslint": "^7.32.0",
+    "config": "^3.3.6",
     "express": "^4.17.1",
     "sequelize": "^6.6.5",
     "sqlite3": "^5.0.2"
+  },
+  "optionalDependencies": {
+    "fsevents": "^2.1.2"
   }
 }
