@@ -48,15 +48,15 @@ describe('User Registration', () => {
     expect(savedUser.email).toBe('user1@mail.com');
   });
 
-  it('saves the username and email to database', async () => {
+  it('confirms that the password is not plainly saved', async () => {
     await postValidUser();
     const userList = await User.findAll();
     const savedUser = userList[0];
     expect(savedUser.username).not.toBe('P4ssword');
   });
 
-  it('returns 400 when entering invalid user', async () => {
-    const response = await postInvalidUser();
+  it('returns 400 when entering invalid username', async () => {
+    const response = await postInvalidUser('username');
     expect(response.status).toBe(400);
   });
 });
