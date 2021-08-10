@@ -14,6 +14,15 @@ describe('User Registration', () => {
       email: 'user1@mail.com',
       password: 'P4ssword',
     });
+  const postInvalidUser = (attribute) => {
+    const user = {
+      username: 'user1',
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+    };
+    user[attribute] = null;
+    return request(app).post('/api/v1/users').send(user);
+  };
 
   it('returns 200 Ok when signup request is valid', async () => {
     const response = await postValidUser();
@@ -44,5 +53,10 @@ describe('User Registration', () => {
     const userList = await User.findAll();
     const savedUser = userList[0];
     expect(savedUser.username).not.toBe('P4ssword');
+  });
+
+  it('returns 400 when entering invalid user', async () => {
+    const response = await postInvalidUser();
+    expect(response.status).toBe(400);
   });
 });
