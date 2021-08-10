@@ -1,6 +1,15 @@
 const request = require('supertest');
 const app = require('../src/app');
 const User = require('../src/user/user');
+const sequelize = require('../src/config/database');
+
+beforeAll(() => {
+  return sequelize.sync();
+});
+
+beforeEach(() => {
+  return User.destroy({ truncate: true });
+});
 
 describe('User Registration', () => {
   it('returns 200 Ok when signup request is valid', (done) => {
