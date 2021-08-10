@@ -55,13 +55,13 @@ describe('User Registration', () => {
     expect(response.status).toBe(400);
   });
 
-  it('returns validationErrors when they occur', async () => {
+  it('returns "Username cannot be null" when username is null', async () => {
     const invalidUser = { ...validUser };
     invalidUser.username = null;
     const response = await postUser(invalidUser);
     expect(response.status).toBe(400);
     const { validationErrors } = response.body;
     expect(validationErrors).not.toBeUndefined();
-    expect(response.body.validationErrors).toBe('Invalid username');
+    expect(validationErrors.username).toBe('Username cannot be null');
   });
 });
