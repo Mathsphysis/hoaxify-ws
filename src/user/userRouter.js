@@ -9,7 +9,7 @@ router.use(express.urlencoded({ extended: true }));
 router.post('/api/v1/users', async (req, res) => {
   const user = req.body;
   if (user.username === null) {
-    return res.send(400);
+    return res.status(400).send({ validationErrors: {} });
   }
 
   await UserService.save(req.body);

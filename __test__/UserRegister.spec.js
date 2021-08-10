@@ -12,11 +12,10 @@ const validUser = {
   email: 'user1@mail.com',
   password: 'P4ssword',
 };
-describe('User Registration', () => {
-  const postUser = (user = validUser) => {
-    return request(app).post('/api/v1/users').send(user);
-  };
 
+describe('User Registration', () => {
+  const postUser = (user = validUser) =>
+    request(app).post('/api/v1/users').send(user);
 
   it('returns 200 Ok when signup request is valid', async () => {
     const response = await postUser();
@@ -54,5 +53,15 @@ describe('User Registration', () => {
     invalidUser.username = null;
     const response = await postUser(invalidUser);
     expect(response.status).toBe(400);
+  });
+
+  it('returns validationErrors when they occur', async () => {
+    const invalidUser = { ...validUser };
+    invalidUser.username = null;
+    const response = await postUser(invalidUser);
+    expect(response.status).toBe(400);
+    const { validationErrors } = response.body;
+    expect(validationErrors).not.toBeUndefined();
+    expect(response.body.validationErrors).toBe('Invalid username');
   });
 });
