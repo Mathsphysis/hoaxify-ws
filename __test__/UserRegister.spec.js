@@ -58,8 +58,7 @@ describe('User Registration', () => {
     ${'username'} | ${'usr'}          | ${'Username must have between 4 and 32 characters'}
     ${'username'} | ${'u'.repeat(33)} | ${'Username must have between 4 and 32 characters'}
     ${'email'}    | ${null}           | ${'Email cannot be empty'}
-    ${'email'}    | ${'usr'}          | ${'Must be a valid email'}
-    ${'email'}    | ${'usr'}          | ${'Must be a unique email'}
+    ${'email'}    | ${'usr.mail.com'} | ${'Must be a valid email'}
     ${'password'} | ${null}           | ${'Password must have at least 6 characters'}
     ${'password'} | ${'pass'}         | ${'Password must have between 6 and 18 characters'}
     ${'password'} | ${'p'.repeat(19)} | ${'Password must have between 6 and 18 characters'}
@@ -78,6 +77,16 @@ describe('User Registration', () => {
       expect(validationErrors).toHaveProperty(field, expectedMessage);
     }
   );
+
+  it('returns Email already in use when email is in use', async () => {
+    await User.create(validUser);
+    const response = await postUser();
+    expect(response.status).toBe(400);
+    expect(response.body.validationErrors).toHaveProperty(
+      'email',
+      'Email already in use'
+    );
+  });
 
   it('returns validationErrors for all invalid fields', async () => {
     const invalidUser = { ...validUser };
