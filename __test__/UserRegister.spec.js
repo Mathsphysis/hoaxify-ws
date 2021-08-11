@@ -88,4 +88,18 @@ describe('User Registration', () => {
       expect(validationErrors).toHaveProperty(property)
     );
   });
+
+  it.each([
+    ['username', 'Username cannot be null'],
+    ['email', 'Email cannot be null'],
+    ['password', 'Password cannot be null'],
+  ])('when %s is null, %s is received', async (field, expectedMessage) => {
+    const invalidUser = { ...validUser };
+    invalidUser[field] = null;
+    const response = await postUser(invalidUser);
+    expect(response.status).toBe(400);
+    const { validationErrors } = response.body;
+    expect(validationErrors).not.toBeUndefined();
+    expect(validationErrors[field]).toBe(expectedMessage);
+  });
 });
