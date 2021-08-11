@@ -51,21 +51,30 @@ describe('User Registration', () => {
       expect(result).toBeTruthy();
     });
   });
+  /* eslint-disable */
+  const username_null = 'Username must have at least 4 characters';
+  const username_size = 'Username must have between 4 and 32 characters';
+  const email_null = 'Email cannot be empty';
+  const email_invalid = 'Must be a valid email';
+  const password_null = 'Password must have at least 6 characters';
+  const password_size = 'Password must have between 6 and 18 characters';
+  const password_invalid = 'Password must have at least 1 lowercase, 1 uppercase and 1 number';
 
   it.each`
     field         | value             | expectedMessage
-    ${'username'} | ${null}           | ${'Username must have at least 4 characters'}
-    ${'username'} | ${'usr'}          | ${'Username must have between 4 and 32 characters'}
-    ${'username'} | ${'u'.repeat(33)} | ${'Username must have between 4 and 32 characters'}
-    ${'email'}    | ${null}           | ${'Email cannot be empty'}
-    ${'email'}    | ${'usr.mail.com'} | ${'Must be a valid email'}
-    ${'password'} | ${null}           | ${'Password must have at least 6 characters'}
-    ${'password'} | ${'pass'}         | ${'Password must have between 6 and 18 characters'}
-    ${'password'} | ${'p'.repeat(19)} | ${'Password must have between 6 and 18 characters'}
-    ${'password'} | ${'aaaa5555'}     | ${'Password must have at least 1 lowercase, 1 uppercase and 1 number'}
-    ${'password'} | ${'AAAA5555'}     | ${'Password must have at least 1 lowercase, 1 uppercase and 1 number'}
-    ${'password'} | ${'aaaaAAAA'}     | ${'Password must have at least 1 lowercase, 1 uppercase and 1 number'}
+    ${'username'} | ${null}           | ${username_null}
+    ${'username'} | ${'usr'}          | ${username_size}
+    ${'username'} | ${'u'.repeat(33)} | ${username_size}
+    ${'email'}    | ${null}           | ${email_null}
+    ${'email'}    | ${'usr.mail.com'} | ${email_invalid}
+    ${'password'} | ${null}           | ${password_null}
+    ${'password'} | ${'pass'}         | ${password_size}
+    ${'password'} | ${'p'.repeat(19)} | ${password_size}
+    ${'password'} | ${'aaaa5555'}     | ${password_invalid}
+    ${'password'} | ${'AAAA5555'}     | ${password_invalid}
+    ${'password'} | ${'aaaaAAAA'}     | ${password_invalid}
   `(
+    /* eslint-enable */
     'returns $expectedMessage when $field is $value',
     async ({ field, value, expectedMessage }) => {
       const invalidUser = { ...validUser };
