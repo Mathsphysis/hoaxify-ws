@@ -55,7 +55,7 @@ describe('User Registration', () => {
     expect(response.status).toBe(400);
   });
 
-  it('returns "Username cannot be null" when username is null', async () => {
+  it('returns Username cannot be null when username is null', async () => {
     const invalidUser = { ...validUser };
     invalidUser.username = null;
     const response = await postUser(invalidUser);
@@ -63,5 +63,28 @@ describe('User Registration', () => {
     const { validationErrors } = response.body;
     expect(validationErrors).not.toBeUndefined();
     expect(validationErrors.username).toBe('Username cannot be null');
+  });
+
+  it('returns Email cannot be null when email is null', async () => {
+    const invalidUser = { ...validUser };
+    invalidUser.email = null;
+    const response = await postUser(invalidUser);
+    expect(response.status).toBe(400);
+    const { validationErrors } = response.body;
+    expect(validationErrors).not.toBeUndefined();
+    expect(validationErrors.email).toBe('Email cannot be null');
+  });
+
+  it('returns validationErrors for all invalid fields', async () => {
+    const invalidUser = { ...validUser };
+    invalidUser.username = null;
+    invalidUser.email = null;
+    const response = await postUser(invalidUser);
+    expect(response.status).toBe(400);
+    const { validationErrors } = response.body;
+    expect(validationErrors).not.toBeUndefined();
+    const requiredProperties = ['username', 'email'];
+    requiredProperties.forEach((property) =>
+      expect(validationErrors).toHaveProperty(property));
   });
 });
