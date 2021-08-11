@@ -48,31 +48,18 @@ describe('User Registration', () => {
     expect(savedUser.username).not.toBe('P4ssword');
   });
 
-  it('returns 400 when entering invalid username', async () => {
+  it.each([
+    ['username', 'Username cannot be null'],
+    ['email', 'Email cannot be null'],
+    ['password', 'Password cannot be null'],
+  ])('when %s is null, %s is received', async (field, expectedMessage) => {
     const invalidUser = { ...validUser };
-    invalidUser.username = null;
-    const response = await postUser(invalidUser);
-    expect(response.status).toBe(400);
-  });
-
-  it('returns Username cannot be null when username is null', async () => {
-    const invalidUser = { ...validUser };
-    invalidUser.username = null;
+    invalidUser[field] = null;
     const response = await postUser(invalidUser);
     expect(response.status).toBe(400);
     const { validationErrors } = response.body;
     expect(validationErrors).not.toBeUndefined();
-    expect(validationErrors.username).toBe('Username cannot be null');
-  });
-
-  it('returns Email cannot be null when email is null', async () => {
-    const invalidUser = { ...validUser };
-    invalidUser.email = null;
-    const response = await postUser(invalidUser);
-    expect(response.status).toBe(400);
-    const { validationErrors } = response.body;
-    expect(validationErrors).not.toBeUndefined();
-    expect(validationErrors.email).toBe('Email cannot be null');
+    expect(validationErrors[field]).toBe(expectedMessage);
   });
 
   it('returns validationErrors for all invalid fields', async () => {
@@ -87,19 +74,5 @@ describe('User Registration', () => {
     requiredProperties.forEach((property) =>
       expect(validationErrors).toHaveProperty(property)
     );
-  });
-
-  it.each([
-    ['username', 'Username cannot be null'],
-    ['email', 'Email cannot be null'],
-    ['password', 'Password cannot be null'],
-  ])('when %s is null, %s is received', async (field, expectedMessage) => {
-    const invalidUser = { ...validUser };
-    invalidUser[field] = null;
-    const response = await postUser(invalidUser);
-    expect(response.status).toBe(400);
-    const { validationErrors } = response.body;
-    expect(validationErrors).not.toBeUndefined();
-    expect(validationErrors[field]).toBe(expectedMessage);
   });
 });
