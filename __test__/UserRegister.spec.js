@@ -48,25 +48,28 @@ describe('User Registration', () => {
     const savedUser = userList[0];
     bcrypt.compare(validUser.password, savedUser.password, (err, result) => {
       expect(err).toBeUndefined();
-      expect(result).toBe(true);
+      expect(result).toBeTruthy();
     });
   });
 
   it.each`
-    field         | expectedMessage
-    ${'username'} | ${'Username cannot be null'}
-    ${'email'}    | ${'Email cannot be null'}
-    ${'password'} | ${'Password cannot be null'}
+    field         | value     | expectedMessage
+    ${'username'} | ${null}   | ${'Username cannot be null'}
+    ${'username'} | ${'usr'}  | ${'Username must have between 4 and 32 characters'}
+    ${'email'}    | ${null}   | ${'Email cannot be null'}
+    ${'email'}    | ${'usr'}  | ${'Must be a valid'}
+    ${'password'} | ${null}   | ${'Password cannot be null'}
+    ${'password'} | ${'pass'} | ${'Password must have between 6 and 18 characters'}
   `(
-    'returns $expectedMessage when $field is null',
-    async ({ field, expectedMessage }) => {
+    'returns $expectedMessage when $field is $value',
+    async ({ field, value, expectedMessage }) => {
       const invalidUser = { ...validUser };
-      invalidUser[field] = null;
+      invalidUser[field] = value;
       const response = await postUser(invalidUser);
       expect(response.status).toBe(400);
       const { validationErrors } = response.body;
       expect(validationErrors).not.toBeUndefined();
-      expect(validationErrors[field]).toBe(expectedMessage);
+      expect(validationErrors).toHaveProperty(field, expectedMessage);
     }
   );
 
