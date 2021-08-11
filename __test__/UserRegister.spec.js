@@ -14,27 +14,27 @@ const validUser = {
   password: 'P4ssword',
 };
 
-describe('User Registration', () => {
+describe(`User Registration`, () => {
   const postUser = (user = validUser) =>
     request(app).post('/api/v1/users').send(user);
 
-  it('returns 200 Ok when signup request is valid', async () => {
+  it(`returns 200 Ok when signup request is valid`, async () => {
     const response = await postUser();
     expect(response.status).toBe(200);
   });
 
-  it('returns success message when signup request is valid', async () => {
+  it(`returns success message when signup request is valid`, async () => {
     const response = await postUser();
     expect(response.body.message).toBe('User created');
   });
 
-  it('saves the user to database', async () => {
+  it(`saves the user to database`, async () => {
     await postUser();
     const userList = await User.findAll();
     expect(userList.length).toBe(1);
   });
 
-  it('saves the username and email to database', async () => {
+  it(`saves the username and email to database`, async () => {
     await postUser();
     const userList = await User.findAll();
     const savedUser = userList[0];
@@ -42,7 +42,7 @@ describe('User Registration', () => {
     expect(savedUser.email).toBe('user1@mail.com');
   });
 
-  it('confirms that the password is correctly hashed', async () => {
+  it(`confirms that the password is correctly hashed`, async () => {
     await postUser();
     const userList = await User.findAll();
     const savedUser = userList[0];
@@ -59,6 +59,7 @@ describe('User Registration', () => {
   const password_null = 'Password must have at least 6 characters';
   const password_size = 'Password must have between 6 and 18 characters';
   const password_invalid = 'Password must have at least 1 lowercase, 1 uppercase and 1 number';
+  const email_used = 'Email already in use';
 
   it.each`
     field         | value             | expectedMessage
@@ -75,7 +76,7 @@ describe('User Registration', () => {
     ${'password'} | ${'aaaaAAAA'}     | ${password_invalid}
   `(
     /* eslint-enable */
-    'returns $expectedMessage when $field is $value',
+    `returns $expectedMessage when $field is $value`,
     async ({ field, value, expectedMessage }) => {
       const invalidUser = { ...validUser };
       invalidUser[field] = value;
@@ -87,17 +88,15 @@ describe('User Registration', () => {
     }
   );
 
-  it('returns Email already in use when email is in use', async () => {
+  // eslint-disable-next-line
+  it(`returns ${email_used} when email is in use`, async () => {
     await User.create(validUser);
     const response = await postUser();
     expect(response.status).toBe(400);
-    expect(response.body.validationErrors).toHaveProperty(
-      'email',
-      'Email already in use'
-    );
+    expect(response.body.validationErrors).toHaveProperty('email', email_used);
   });
 
-  it('returns validationErrors for all invalid fields', async () => {
+  it(`returns validationErrors for all invalid fields`, async () => {
     const invalidUser = { ...validUser };
     invalidUser.username = null;
     invalidUser.email = null;
