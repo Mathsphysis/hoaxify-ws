@@ -85,6 +85,7 @@ describe('User Registration', () => {
     expect(validationErrors).not.toBeUndefined();
     const requiredProperties = ['username', 'email'];
     requiredProperties.forEach((property) =>
-      expect(validationErrors).toHaveProperty(property));
+      expect(validationErrors).toHaveProperty(property)
+    );
   });
 });
