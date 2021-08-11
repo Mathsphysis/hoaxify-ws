@@ -1,4 +1,5 @@
 const request = require('supertest');
+const bcrypt = require('bcrypt');
 const app = require('../src/app');
 const User = require('../src/user/user');
 const sequelize = require('../src/config/database');
@@ -41,38 +42,50 @@ describe('User Registration', () => {
     expect(savedUser.email).toBe('user1@mail.com');
   });
 
-  it('confirms that the password is not plainly saved', async () => {
+  it('confirms that the password is correctly hashed', async () => {
     await postUser();
     const userList = await User.findAll();
     const savedUser = userList[0];
-    expect(savedUser.username).not.toBe('P4ssword');
+    bcrypt.compare(validUser.password, savedUser.password, (err, result) => {
+      expect(err).toBeUndefined();
+      expect(result).toBeTruthy();
+    });
   });
 
-  it('returns 400 when entering invalid username', async () => {
-    const invalidUser = { ...validUser };
-    invalidUser.username = null;
-    const response = await postUser(invalidUser);
-    expect(response.status).toBe(400);
-  });
+  it.each`
+    field         | value             | expectedMessage
+    ${'username'} | ${null}           | ${'Username must have at least 4 characters'}
+    ${'username'} | ${'usr'}          | ${'Username must have between 4 and 32 characters'}
+    ${'username'} | ${'u'.repeat(33)} | ${'Username must have between 4 and 32 characters'}
+    ${'email'}    | ${null}           | ${'Email cannot be empty'}
+    ${'email'}    | ${'usr.mail.com'} | ${'Must be a valid email'}
+    ${'password'} | ${null}           | ${'Password must have at least 6 characters'}
+    ${'password'} | ${'pass'}         | ${'Password must have between 6 and 18 characters'}
+    ${'password'} | ${'p'.repeat(19)} | ${'Password must have between 6 and 18 characters'}
+    ${'password'} | ${'aaaa5555'}     | ${'Password must have at least 1 lowercase, 1 uppercase and 1 number'}
+    ${'password'} | ${'AAAA5555'}     | ${'Password must have at least 1 lowercase, 1 uppercase and 1 number'}
+    ${'password'} | ${'aaaaAAAA'}     | ${'Password must have at least 1 lowercase, 1 uppercase and 1 number'}
+  `(
+    'returns $expectedMessage when $field is $value',
+    async ({ field, value, expectedMessage }) => {
+      const invalidUser = { ...validUser };
+      invalidUser[field] = value;
+      const response = await postUser(invalidUser);
+      expect(response.status).toBe(400);
+      const { validationErrors } = response.body;
+      expect(validationErrors).not.toBeUndefined();
+      expect(validationErrors).toHaveProperty(field, expectedMessage);
+    }
+  );
 
-  it('returns Username cannot be null when username is null', async () => {
-    const invalidUser = { ...validUser };
-    invalidUser.username = null;
-    const response = await postUser(invalidUser);
+  it('returns Email already in use when email is in use', async () => {
+    await User.create(validUser);
+    const response = await postUser();
     expect(response.status).toBe(400);
-    const { validationErrors } = response.body;
-    expect(validationErrors).not.toBeUndefined();
-    expect(validationErrors.username).toBe('Username cannot be null');
-  });
-
-  it('returns Email cannot be null when email is null', async () => {
-    const invalidUser = { ...validUser };
-    invalidUser.email = null;
-    const response = await postUser(invalidUser);
-    expect(response.status).toBe(400);
-    const { validationErrors } = response.body;
-    expect(validationErrors).not.toBeUndefined();
-    expect(validationErrors.email).toBe('Email cannot be null');
+    expect(response.body.validationErrors).toHaveProperty(
+      'email',
+      'Email already in use'
+    );
   });
 
   it('returns validationErrors for all invalid fields', async () => {
