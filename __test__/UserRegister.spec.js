@@ -166,4 +166,9 @@ describe(`Internationalization for pt-br`, () => {
     expect(response.status).toBe(400);
     expect(response.body.validationErrors).toHaveProperty('email', email_inuse);
   });
+
+  it(`returns success message when signup request is valid`, async () => {
+    const response = await postUser({ ...validUser }, { language: 'pt-br' });
+    expect(response.body.message).toBe('Usuário criado com sucesso');
+  });
 });

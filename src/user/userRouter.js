@@ -21,7 +21,7 @@ router.post(
     const savedUser = await UserService.save(req.body);
     return res.status(200).json({
       createdUser: savedUser,
-      message: 'User created',
+      message: req.t('user_created'),
     });
   }
 );
