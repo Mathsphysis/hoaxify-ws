@@ -14,7 +14,7 @@ const validUser = {
   password: 'P4ssword',
 };
 
-const postUser = (user = validUser, options = {}) => {
+const postUser = (user = { ...validUser }, options = {}) => {
   const agent = request(app).post('/api/v1/users');
 
   if (options.language) {
@@ -98,7 +98,7 @@ describe(`User Registration`, () => {
 
   // eslint-disable-next-line
   it(`returns ${email_inuse} when email is in use`, async () => {
-    await User.create(validUser);
+    await User.create({ ...validUser });
     const response = await postUser();
     expect(response.status).toBe(400);
     expect(response.body.validationErrors).toHaveProperty('email', email_inuse);
@@ -161,8 +161,8 @@ describe(`Internationalization for pt-br`, () => {
 
   // eslint-disable-next-line
   it(`returns ${email_inuse} when email is in use`, async () => {
-    await User.create(validUser);
-    const response = await postUser(validUser, { language: 'pt-br' });
+    await User.create({ ...validUser });
+    const response = await postUser({ ...validUser }, { language: 'pt-br' });
     expect(response.status).toBe(400);
     expect(response.body.validationErrors).toHaveProperty('email', email_inuse);
   });
