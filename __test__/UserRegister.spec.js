@@ -17,7 +17,6 @@ const validUser = {
 describe(`User Registration`, () => {
   const postUser = (user = validUser) =>
     request(app).post('/api/v1/users').send(user);
-
   it(`returns 200 Ok when signup request is valid`, async () => {
     const response = await postUser();
     expect(response.status).toBe(200);
@@ -58,7 +57,8 @@ describe(`User Registration`, () => {
   const email_invalid = 'Must be a valid email';
   const password_null = 'Password must have at least 6 characters';
   const password_size = 'Password must have between 6 and 18 characters';
-  const password_invalid = 'Password must have at least 1 lowercase, 1 uppercase and 1 number';
+  const password_invalid =
+    'Password must have at least 1 lowercase, 1 uppercase and 1 number';
   const email_used = 'Email already in use';
 
   it.each`
@@ -108,5 +108,59 @@ describe(`User Registration`, () => {
     requiredProperties.forEach((property) =>
       expect(validationErrors).toHaveProperty(property)
     );
+  });
+});
+
+describe(`Internationalization`, () => {
+  const postUser = (user = validUser) =>
+    request(app)
+      .post('/api/v1/users')
+      .set('Accept-Language', 'pt-br')
+      .send(user);
+  /* eslint-disable */
+  const username_null = 'O Username tem que possuir pelo menos 4 caracteres';
+  const username_size = 'O Username tem que ter entre 4 e 32 caracteres';
+  const email_null = 'Email não deve ser vazio';
+  const email_invalid = 'Deve ser um email válido';
+  const password_null =
+    'A Palavra-chave tem que possuir pelo menos 4 caracteres';
+  const password_size = 'A Palavra-chave tem que ter entre 4 e 32 caracteres';
+  const password_invalid =
+    'A Palavra-chave deve possuir pelo menos 1 letra minúscula, 1 maiúscula e 1 número';
+  const email_used = 'Email já está registrado';
+
+  it.each`
+    field         | value             | expectedMessage
+    ${'username'} | ${null}           | ${username_null}
+    ${'username'} | ${'usr'}          | ${username_size}
+    ${'username'} | ${'u'.repeat(33)} | ${username_size}
+    ${'email'}    | ${null}           | ${email_null}
+    ${'email'}    | ${'usr.mail.com'} | ${email_invalid}
+    ${'password'} | ${null}           | ${password_null}
+    ${'password'} | ${'pass'}         | ${password_size}
+    ${'password'} | ${'p'.repeat(19)} | ${password_size}
+    ${'password'} | ${'aaaa5555'}     | ${password_invalid}
+    ${'password'} | ${'AAAA5555'}     | ${password_invalid}
+    ${'password'} | ${'aaaaAAAA'}     | ${password_invalid}
+  `(
+    /* eslint-enable */
+    `returns $expectedMessage when $field is $value`,
+    async ({ field, value, expectedMessage }) => {
+      const invalidUser = { ...validUser };
+      invalidUser[field] = value;
+      const response = await postUser(invalidUser);
+      expect(response.status).toBe(400);
+      const { validationErrors } = response.body;
+      expect(validationErrors).not.toBeUndefined();
+      expect(validationErrors).toHaveProperty(field, expectedMessage);
+    }
+  );
+
+  // eslint-disable-next-line
+  it(`returns ${email_used} when email is in use`, async () => {
+    await User.create(validUser);
+    const response = await postUser();
+    expect(response.status).toBe(400);
+    expect(response.body.validationErrors).toHaveProperty('email', email_used);
   });
 });
