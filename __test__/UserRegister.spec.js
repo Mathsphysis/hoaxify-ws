@@ -111,7 +111,7 @@ describe(`User Registration`, () => {
   });
 });
 
-describe(`Internationalization`, () => {
+describe(`Internationalization for pt-br`, () => {
   const postUser = (user = validUser) =>
     request(app)
       .post('/api/v1/users')
