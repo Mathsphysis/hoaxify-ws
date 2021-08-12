@@ -14,9 +14,17 @@ const validUser = {
   password: 'P4ssword',
 };
 
+const postUser = (user = validUser, options = {}) => {
+  const agent = request(app).post('/api/v1/users');
+
+  if (options.language) {
+    agent.set('Accept-Language', options.language);
+  }
+
+  return agent.send(user);
+};
+
 describe(`User Registration`, () => {
-  const postUser = (user = validUser) =>
-    request(app).post('/api/v1/users').send(user);
   it(`returns 200 Ok when signup request is valid`, async () => {
     const response = await postUser();
     expect(response.status).toBe(200);
@@ -59,7 +67,7 @@ describe(`User Registration`, () => {
   const password_size = 'Password must have between 6 and 18 characters';
   const password_invalid =
     'Password must have at least 1 lowercase, 1 uppercase and 1 number';
-  const email_used = 'Email already in use';
+  const email_inuse = 'Email already in use';
 
   it.each`
     field         | value             | expectedMessage
@@ -89,11 +97,11 @@ describe(`User Registration`, () => {
   );
 
   // eslint-disable-next-line
-  it(`returns ${email_used} when email is in use`, async () => {
+  it(`returns ${email_inuse} when email is in use`, async () => {
     await User.create(validUser);
     const response = await postUser();
     expect(response.status).toBe(400);
-    expect(response.body.validationErrors).toHaveProperty('email', email_used);
+    expect(response.body.validationErrors).toHaveProperty('email', email_inuse);
   });
 
   it(`returns validationErrors for all invalid fields`, async () => {
@@ -112,11 +120,6 @@ describe(`User Registration`, () => {
 });
 
 describe(`Internationalization for pt-br`, () => {
-  const postUser = (user = validUser) =>
-    request(app)
-      .post('/api/v1/users')
-      .set('Accept-Language', 'pt-br')
-      .send(user);
   /* eslint-disable */
   const username_null = 'O Username tem que possuir pelo menos 4 caracteres';
   const username_size = 'O Username tem que ter entre 4 e 32 caracteres';
@@ -127,7 +130,7 @@ describe(`Internationalization for pt-br`, () => {
   const password_size = 'A Palavra-chave tem que ter entre 4 e 32 caracteres';
   const password_invalid =
     'A Palavra-chave deve possuir pelo menos 1 letra minúscula, 1 maiúscula e 1 número';
-  const email_used = 'Email já está registrado';
+  const email_inuse = 'Email já está registrado';
 
   it.each`
     field         | value             | expectedMessage
@@ -148,7 +151,7 @@ describe(`Internationalization for pt-br`, () => {
     async ({ field, value, expectedMessage }) => {
       const invalidUser = { ...validUser };
       invalidUser[field] = value;
-      const response = await postUser(invalidUser);
+      const response = await postUser(invalidUser, { language: 'pt-br' });
       expect(response.status).toBe(400);
       const { validationErrors } = response.body;
       expect(validationErrors).not.toBeUndefined();
@@ -157,10 +160,10 @@ describe(`Internationalization for pt-br`, () => {
   );
 
   // eslint-disable-next-line
-  it(`returns ${email_used} when email is in use`, async () => {
+  it(`returns ${email_inuse} when email is in use`, async () => {
     await User.create(validUser);
-    const response = await postUser();
+    const response = await postUser(validUser, { language: 'pt-br' });
     expect(response.status).toBe(400);
-    expect(response.body.validationErrors).toHaveProperty('email', email_used);
+    expect(response.body.validationErrors).toHaveProperty('email', email_inuse);
   });
 });
