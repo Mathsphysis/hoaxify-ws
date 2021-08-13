@@ -1,0 +1,11 @@
+{
+    "username_null": "Username must have at least 4 characters",
+    "username_size": "Username must have between 4 and 32 characters",
+    "email_null": "Email cannot be empty",
+    "email_invalid": "Must be a valid email",
+    "password_null": "Password must have at least 6 characters",
+    "password_size": "Password must have between 6 and 18 characters",
+    "password_pattern":  "Password must have at least 1 lowercase, 1 uppercase and 1 number",
+    "email_inuse": "Email already in use",
+    "user_created": "User created"
+}
