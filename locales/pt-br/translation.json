@@ -1,0 +1,11 @@
+{
+    "username_null": "O Username tem que possuir pelo menos 4 caracteres",
+    "username_size": "O Username tem que ter entre 4 e 32 caracteres",
+    "email_null": "Email não deve ser vazio",
+    "email_invalid": "Deve ser um email válido",
+    "password_null": "A senha tem que possuir pelo menos 4 caracteres",
+    "password_size": "A senha tem que ter entre 4 e 32 caracteres",
+    "password_pattern": "A senha deve possuir pelo menos 1 letra minúscula, 1 maiúscula e 1 número",
+    "email_inuse": "Email já está registrado",
+    "user_created": "Usuário criado com sucesso"
+}
