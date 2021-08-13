@@ -4,39 +4,37 @@ const UserService = require('./userService');
 const passwordRules = () =>
   body('password')
     .notEmpty()
-    .withMessage('Password must have at least 6 characters')
+    .withMessage('password_null')
     .bail()
     .isLength({ min: 6, max: 18 })
-    .withMessage('Password must have between 6 and 18 characters')
+    .withMessage('password_size')
     .bail()
     .matches(/^(?=.*[A-Za-z])(?=.*d)[A-Za-zd@$!%*#?&]*/)
-    .withMessage(
-      'Password must have at least 1 lowercase, 1 uppercase and 1 number'
-    );
+    .withMessage('password_pattern');
 
 const emailRules = () =>
   body('email')
     .notEmpty()
-    .withMessage('Email cannot be empty')
+    .withMessage('email_null')
     .bail()
     .normalizeEmail()
     .isEmail()
-    .withMessage('Must be a valid email')
+    .withMessage('email_invalid')
     .bail()
     .custom(async (email) => {
       const user = await UserService.findByEmail(email);
       if (user) {
-        throw new Error('Email already in use');
+        throw new Error('email_inuse');
       }
     });
 
 const usernameRules = () =>
   body('username')
     .notEmpty()
-    .withMessage('Username must have at least 4 characters')
+    .withMessage('username_null')
     .bail()
     .isLength({ min: 4, max: 32 })
-    .withMessage('Username must have between 4 and 32 characters');
+    .withMessage('username_size');
 
 const userValidationRules = () => [
   usernameRules(),
@@ -52,10 +50,9 @@ const validate = (req, res, next) => {
 
   const extractedErrors = {};
   // eslint-disable-next-line no-return-assign
-  errors.array().map((err) => (extractedErrors[err.param] = err.msg));
-  return res.status(400).json({
-    validationErrors: extractedErrors,
-  });
+  errors.array().map((err) => (extractedErrors[err.param] = req.t(err.msg)));
+  req.validationErrors = extractedErrors;
+  return next();
 };
 
 module.exports = {
