@@ -15,7 +15,7 @@ const validUser = {
 };
 
 const postUser = (user = { ...validUser }, options = {}) => {
-  const agent = request(app).post('/api/v1/users');
+  const agent = request(app).post('/api/1.0/users');
 
   if (options.language) {
     agent.set('Accept-Language', options.language);
@@ -126,10 +126,10 @@ describe(`Internationalization for pt-br`, () => {
   const email_null = 'Email não deve ser vazio';
   const email_invalid = 'Deve ser um email válido';
   const password_null =
-    'A Palavra-chave tem que possuir pelo menos 4 caracteres';
-  const password_size = 'A Palavra-chave tem que ter entre 4 e 32 caracteres';
+    'A senha tem que possuir pelo menos 4 caracteres';
+  const password_size = 'A senha tem que ter entre 4 e 32 caracteres';
   const password_invalid =
-    'A Palavra-chave deve possuir pelo menos 1 letra minúscula, 1 maiúscula e 1 número';
+    'A senha deve possuir pelo menos 1 letra minúscula, 1 maiúscula e 1 número';
   const email_inuse = 'Email já está registrado';
 
   it.each`

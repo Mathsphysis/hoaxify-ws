@@ -8,7 +8,7 @@ router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
 router.post(
-  '/api/v1/users',
+  '/api/1.0/users',
   userValidationRules(),
   validate,
   async (req, res) => {
