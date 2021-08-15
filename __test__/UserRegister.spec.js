@@ -117,6 +117,28 @@ describe(`User Registration`, () => {
       expect(validationErrors).toHaveProperty(property)
     );
   });
+
+  it(`creates user in inactive mode`, async () => {
+    await postUser();
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(savedUser.inactive).toBe(true);
+  });
+
+  it(`creates user in inactive mode even if the request body contains inactive as false`, async () => {
+    const newUser = { ...validUser, inactive: false };
+    await postUser(newUser);
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(savedUser.inactive).toBe(false);
+  });
+
+  it(`creates an activationToken for user`, async () => {
+    await postUser();
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(savedUser.activationToken).toBeTruthy();
+  });
 });
 
 describe(`Internationalization for pt-br`, () => {
