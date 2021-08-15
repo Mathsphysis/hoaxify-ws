@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const User = require('./user');
 const emailService = require('../email/emailService');
 const sequelize = require('../config/database');
+const EmailException = require('../email/EmailException');
 
 const ACTIVATION_TOKEN_LENGTH = 16;
 
@@ -30,7 +31,7 @@ const save = async (body) => {
     return savedUser;
   } catch (err) {
     await transaction.rollback();
-    throw new Error(err);
+    throw new EmailException();
   }
 };
 
