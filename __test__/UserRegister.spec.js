@@ -168,6 +168,16 @@ describe(`User Registration`, () => {
     mockSendAccountActivation.mockRestore();
     expect(response.status).toBe(502);
   });
+
+  it('does not save user to database if sending activation email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(emailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    await postUser();
+    mockSendAccountActivation.mockRestore();
+    const users = await User.findAll();
+    expect(users.length).toBe(0);
+  });
 });
 
 describe(`Internationalization for pt-br`, () => {

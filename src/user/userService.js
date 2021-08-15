@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const User = require('./user');
 const emailService = require('../email/emailService');
+const sequelize = require('../config/database');
 
 const ACTIVATION_TOKEN_LENGTH = 16;
 
@@ -21,9 +22,16 @@ const save = async (body) => {
     activationToken,
   };
   const emailUser = { username, email, activationToken };
-  await emailService.sendAccountActivation(emailUser);
-  const savedUser = await User.create(user);
-  return savedUser;
+  const transaction = await sequelize.transaction();
+  const savedUser = await User.create(user, { transaction });
+  try {
+    await emailService.sendAccountActivation(emailUser);
+    await transaction.commit();
+    return savedUser;
+  } catch (err) {
+    await transaction.rollback();
+    throw new Error(err);
+  }
 };
 
 const findByEmail = async (email) => {
