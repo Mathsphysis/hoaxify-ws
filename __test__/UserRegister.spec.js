@@ -1,12 +1,35 @@
 const request = require('supertest');
 const bcrypt = require('bcrypt');
-const nodemailerStub = require('nodemailer-stub');
+const { SMTPServer } = require('smtp-server');
 const app = require('../src/app');
 const User = require('../src/user/user');
 const sequelize = require('../src/config/database');
 const emailService = require('../src/email/emailService');
 
-beforeAll(() => sequelize.sync());
+let lastMail;
+let server;
+
+beforeAll(async () => {
+  server = new SMTPServer({
+    authOptional: true,
+    onData(stream, session, callback) {
+      let mailBody;
+      stream.on('data', (data) => {
+        mailBody += data.toString();
+      });
+      stream.on('end', () => {
+        lastMail = mailBody;
+        callback();
+      });
+    },
+  });
+  await server.listen(8587, 'localhost');
+  await sequelize.sync();
+});
+
+afterAll(async () => {
+  await server.close();
+});
 
 beforeEach(() => User.destroy({ truncate: true }));
 
@@ -144,11 +167,10 @@ describe(`User Registration`, () => {
 
   it('sends an Account Activation email with activationToken', async () => {
     await postUser();
-    const lastMail = nodemailerStub.interactsWithMail.lastMail();
-    expect(lastMail.to).toContain(validUser.email);
+    expect(lastMail).toContain(validUser.email);
     const users = await User.findAll();
     const savedUser = users[0];
-    expect(lastMail.content).toContain(savedUser.activationToken);
+    expect(lastMail).toContain(savedUser.activationToken);
   });
 
   it('returns 502 Bad Gateway when sending email fails', async () => {
