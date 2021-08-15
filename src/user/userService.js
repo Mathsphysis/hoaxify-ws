@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const User = require('./user');
-const emailService = require('../email/EmailService');
+const emailService = require('../email/emailService');
 
 const ACTIVATION_TOKEN_LENGTH = 16;
 
