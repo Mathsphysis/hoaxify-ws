@@ -18,11 +18,15 @@ router.post(
         validationErrors: errorMessages,
       });
     }
-    const savedUser = await UserService.save(req.body);
-    return res.status(200).json({
-      createdUser: savedUser,
-      message: req.t('user_created'),
-    });
+    try {
+      const savedUser = await UserService.save(req.body);
+      return res.status(200).json({
+        createdUser: savedUser,
+        message: req.t('user_created'),
+      });
+    } catch (err) {
+      return res.status(502).send({ message: req.t('email_acc_atv_fail') });
+    }
   }
 );
 

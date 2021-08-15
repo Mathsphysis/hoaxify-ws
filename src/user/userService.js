@@ -21,7 +21,7 @@ const save = async (body) => {
     activationToken,
   };
   const emailUser = { username, email, activationToken };
-  await emailService.sendActivationEmail(emailUser);
+  await emailService.sendAccountActivation(emailUser);
   const savedUser = await User.create(user);
   return savedUser;
 };

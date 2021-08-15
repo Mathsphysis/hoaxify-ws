@@ -4,6 +4,7 @@ const nodemailerStub = require('nodemailer-stub');
 const app = require('../src/app');
 const User = require('../src/user/user');
 const sequelize = require('../src/config/database');
+const emailService = require('../src/email/emailService');
 
 beforeAll(() => sequelize.sync());
 
@@ -149,6 +150,24 @@ describe(`User Registration`, () => {
     const savedUser = users[0];
     expect(lastMail.content).toContain(savedUser.activationToken);
   });
+
+  it('returns 502 Bad Gateway when sending email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(emailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    const response = await postUser();
+    mockSendAccountActivation.mockRestore();
+    expect(response.status).toBe(502);
+  });
+
+  it('returns Failed to deliver email when sending email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(emailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    const response = await postUser();
+    mockSendAccountActivation.mockRestore();
+    expect(response.status).toBe(502);
+  });
 });
 
 describe(`Internationalization for pt-br`, () => {
@@ -157,8 +176,7 @@ describe(`Internationalization for pt-br`, () => {
   const username_size = 'O Username tem que ter entre 4 e 32 caracteres';
   const email_null = 'Email não deve ser vazio';
   const email_invalid = 'Deve ser um email válido';
-  const password_null =
-    'A senha tem que possuir pelo menos 4 caracteres';
+  const password_null = 'A senha tem que possuir pelo menos 4 caracteres';
   const password_size = 'A senha tem que ter entre 4 e 32 caracteres';
   const password_invalid =
     'A senha deve possuir pelo menos 1 letra minúscula, 1 maiúscula e 1 número';
@@ -202,5 +220,16 @@ describe(`Internationalization for pt-br`, () => {
   it(`returns success message when signup request is valid`, async () => {
     const response = await postUser({ ...validUser }, { language: 'pt-br' });
     expect(response.body.message).toBe('Usuário criado com sucesso');
+  });
+
+  it('returns email failure message when sending email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(emailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    const response = await postUser({ ...validUser }, { language: 'pt-br' });
+    mockSendAccountActivation.mockRestore();
+    expect(response.body.message).toBe(
+      'Houve uma falha no envio do email de ativação'
+    );
   });
 });

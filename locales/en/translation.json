@@ -7,5 +7,6 @@
     "password_size": "Password must have between 6 and 18 characters",
     "password_pattern":  "Password must have at least 1 lowercase, 1 uppercase and 1 number",
     "email_inuse": "Email already in use",
-    "user_created": "User created"
+    "user_created": "User created",
+    "email_acc_atv_fail": "Failed to deliver email"
 }
