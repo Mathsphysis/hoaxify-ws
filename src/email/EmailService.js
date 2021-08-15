@@ -1,6 +1,6 @@
-const transporter = require('./emailTransporter');
+const transporter = require('../config/emailTransporter');
 
-const sendActivationEmail = async (user) => {
+const sendAccountActivation = async (user) => {
   await transporter.sendMail({
     from: 'My App <info@my-app.com>',
     to: `${user.username} <${user.email}>`,
@@ -10,5 +10,5 @@ const sendActivationEmail = async (user) => {
 };
 
 module.exports = {
-  sendActivationEmail,
+  sendAccountActivation,
 };
