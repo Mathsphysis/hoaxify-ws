@@ -1,11 +1,12 @@
 const bcrypt = require('bcrypt');
 const User = require('./user');
 
-const save = async (userPlain) => {
-  const hash = await bcrypt.hash(userPlain.password, 10);
-  const user = { ...userPlain, password: hash };
-  const { username, email } = await User.create(user);
-  const savedUser = { username, email };
+const save = async (body) => {
+  const { username, email, password, inactive } = body;
+
+  const hash = await bcrypt.hash(password, 10);
+  const user = { username, email, password: hash, inactive };
+  const savedUser = await User.create(user);
   return savedUser;
 };
 
