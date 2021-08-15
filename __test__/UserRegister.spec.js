@@ -137,7 +137,7 @@ describe(`User Registration`, () => {
     await postUser();
     const users = await User.findAll();
     const savedUser = users[0];
-    expect(savedUser.inactive).toBe(true);
+    expect(savedUser.activationToken).toBeTruthy();
   });
 });
 
