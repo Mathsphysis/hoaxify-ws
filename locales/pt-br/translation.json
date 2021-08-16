@@ -8,5 +8,6 @@
     "password_pattern": "A senha deve possuir pelo menos 1 letra minúscula, 1 maiúscula e 1 número",
     "email_inuse": "Email já está registrado",
     "user_created": "Usuário criado com sucesso",
-    "email_acc_atv_fail": "Houve uma falha no envio do email de ativação"
+    "email_acc_atv_fail": "Houve uma falha no envio do email de ativação",
+    "token_acc_atv_fail": "O token enviado não é válido"
 }
