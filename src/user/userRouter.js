@@ -32,7 +32,7 @@ router.post(
 
 router.post('/api/1.0/users/token/:activationtoken', async (req, res) => {
   const token = req.params.activationtoken;
-  await UserService.activationtoken(token);
+  await UserService.activate(token);
   res.send();
 });
 
