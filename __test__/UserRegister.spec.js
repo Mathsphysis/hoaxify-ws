@@ -264,6 +264,16 @@ describe(`Internationalization for pt-br`, () => {
       'Houve uma falha no envio do email de ativação'
     );
   });
+
+  it(`returns token failure message when invalid token is sent from user`, async () => {
+    await postUser();
+    const token = 'inexistentToken';
+
+    const response = await request(app)
+      .post(`/api/1.0/users/token/${token}`)
+      .send();
+    expect(response.body.message).toBe('O token enviado não é válido');
+  });
 });
 
 describe('Account Activation', () => {
@@ -295,5 +305,16 @@ describe('Account Activation', () => {
     await request(app).post(`/api/1.0/users/token/${token}`).send();
     users = await User.findAll();
     expect(users[0].inactive).toBe(true);
+  });
+
+  it(`returns bad request 400 when invalid token is sent from user`, async () => {
+    await postUser();
+    const token = 'inexistentToken';
+
+    const response = await request(app)
+      .post(`/api/1.0/users/token/${token}`)
+      .send();
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe('Invalid token');
   });
 });
