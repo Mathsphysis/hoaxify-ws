@@ -36,7 +36,7 @@ router.post('/api/1.0/users/token/:activationtoken', async (req, res) => {
     await UserService.activate(token);
     return res.send();
   } catch (err) {
-    return res.send();
+    return res.status(400).send({ message: req.t(err.message) });
   }
 });
 
