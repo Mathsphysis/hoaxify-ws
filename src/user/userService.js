@@ -4,6 +4,7 @@ const User = require('./user');
 const emailService = require('../email/emailService');
 const sequelize = require('../config/database');
 const EmailException = require('../email/EmailException');
+const ActivationException = require('./ActivationException');
 
 const ACTIVATION_TOKEN_LENGTH = 16;
 
@@ -37,6 +38,9 @@ const save = async (body) => {
 
 const activate = async (token) => {
   const user = await User.findOne({ where: { activationToken: token } });
+  if (!user) {
+    throw new ActivationException();
+  }
   user.inactive = false;
   user.activationToken = null;
   await user.save();
