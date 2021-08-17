@@ -271,6 +271,7 @@ describe(`Internationalization for pt-br`, () => {
 
     const response = await request(app)
       .post(`/api/1.0/users/token/${token}`)
+      .set('Accept-Language', 'pt-br')
       .send();
     expect(response.body.message).toBe('O token enviado não é válido');
   });
