@@ -1,10 +1,35 @@
 const request = require('supertest');
 const bcrypt = require('bcrypt');
+const { SMTPServer } = require('smtp-server');
 const app = require('../src/app');
 const User = require('../src/user/user');
 const sequelize = require('../src/config/database');
+const emailService = require('../src/email/emailService');
 
-beforeAll(() => sequelize.sync());
+let lastMail;
+let server;
+
+beforeAll(async () => {
+  server = new SMTPServer({
+    authOptional: true,
+    onData(stream, session, callback) {
+      let mailBody;
+      stream.on('data', (data) => {
+        mailBody += data.toString();
+      });
+      stream.on('end', () => {
+        lastMail = mailBody;
+        callback();
+      });
+    },
+  });
+  await server.listen(8587, 'localhost');
+  await sequelize.sync();
+});
+
+afterAll(async () => {
+  await server.close();
+});
 
 beforeEach(() => User.destroy({ truncate: true }));
 
@@ -139,6 +164,42 @@ describe(`User Registration`, () => {
     const savedUser = users[0];
     expect(savedUser.activationToken).toBeTruthy();
   });
+
+  it('sends an Account Activation email with activationToken', async () => {
+    await postUser();
+    expect(lastMail).toContain(validUser.email);
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(lastMail).toContain(savedUser.activationToken);
+  });
+
+  it('returns 502 Bad Gateway when sending email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(emailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    const response = await postUser();
+    mockSendAccountActivation.mockRestore();
+    expect(response.status).toBe(502);
+  });
+
+  it('returns Failed to deliver email when sending email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(emailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    const response = await postUser();
+    mockSendAccountActivation.mockRestore();
+    expect(response.status).toBe(502);
+  });
+
+  it('does not save user to database if sending activation email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(emailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    await postUser();
+    mockSendAccountActivation.mockRestore();
+    const users = await User.findAll();
+    expect(users.length).toBe(0);
+  });
 });
 
 describe(`Internationalization for pt-br`, () => {
@@ -147,8 +208,7 @@ describe(`Internationalization for pt-br`, () => {
   const username_size = 'O Username tem que ter entre 4 e 32 caracteres';
   const email_null = 'Email não deve ser vazio';
   const email_invalid = 'Deve ser um email válido';
-  const password_null =
-    'A senha tem que possuir pelo menos 4 caracteres';
+  const password_null = 'A senha tem que possuir pelo menos 4 caracteres';
   const password_size = 'A senha tem que ter entre 4 e 32 caracteres';
   const password_invalid =
     'A senha deve possuir pelo menos 1 letra minúscula, 1 maiúscula e 1 número';
@@ -192,5 +252,70 @@ describe(`Internationalization for pt-br`, () => {
   it(`returns success message when signup request is valid`, async () => {
     const response = await postUser({ ...validUser }, { language: 'pt-br' });
     expect(response.body.message).toBe('Usuário criado com sucesso');
+  });
+
+  it('returns email failure message when sending email fails', async () => {
+    const mockSendAccountActivation = jest
+      .spyOn(emailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver email' });
+    const response = await postUser({ ...validUser }, { language: 'pt-br' });
+    mockSendAccountActivation.mockRestore();
+    expect(response.body.message).toBe(
+      'Houve uma falha no envio do email de ativação'
+    );
+  });
+
+  it(`returns token failure message when invalid token is sent from user`, async () => {
+    await postUser();
+    const token = 'inexistentToken';
+
+    const response = await request(app)
+      .post(`/api/1.0/users/token/${token}`)
+      .set('Accept-Language', 'pt-br')
+      .send();
+    expect(response.body.message).toBe('O token enviado não é válido');
+  });
+});
+
+describe('Account Activation', () => {
+  it('activates the account when correct token is sent', async () => {
+    await postUser();
+    let users = await User.findAll();
+    const token = users[0].activationToken;
+
+    await request(app).post(`/api/1.0/users/token/${token}`).send();
+    users = await User.findAll();
+    expect(users[0].inactive).toBe(false);
+  });
+
+  it('removes token from the user table after sucessful activation', async () => {
+    await postUser();
+    let users = await User.findAll();
+    const token = users[0].activationToken;
+
+    await request(app).post(`/api/1.0/users/token/${token}`).send();
+    users = await User.findAll();
+    expect(users[0].activationToken).toBeFalsy();
+  });
+
+  it(`does not activate the account when token doesn't match`, async () => {
+    await postUser();
+    let users = await User.findAll();
+    const token = 'inexistentToken';
+
+    await request(app).post(`/api/1.0/users/token/${token}`).send();
+    users = await User.findAll();
+    expect(users[0].inactive).toBe(true);
+  });
+
+  it(`returns bad request 400 when invalid token is sent from user`, async () => {
+    await postUser();
+    const token = 'inexistentToken';
+
+    const response = await request(app)
+      .post(`/api/1.0/users/token/${token}`)
+      .send();
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe('Invalid token');
   });
 });

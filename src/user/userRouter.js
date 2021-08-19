@@ -18,12 +18,26 @@ router.post(
         validationErrors: errorMessages,
       });
     }
-    const savedUser = await UserService.save(req.body);
-    return res.status(200).json({
-      createdUser: savedUser,
-      message: req.t('user_created'),
-    });
+    try {
+      const savedUser = await UserService.save(req.body);
+      return res.status(200).json({
+        createdUser: savedUser,
+        message: req.t('user_created'),
+      });
+    } catch (err) {
+      return res.status(502).send({ message: req.t(err.message) });
+    }
   }
 );
+
+router.post('/api/1.0/users/token/:activationtoken', async (req, res) => {
+  const token = req.params.activationtoken;
+  try {
+    await UserService.activate(token);
+    return res.send();
+  } catch (err) {
+    return res.status(400).send({ message: req.t(err.message) });
+  }
+});
 
 module.exports = router;
