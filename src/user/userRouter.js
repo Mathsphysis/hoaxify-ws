@@ -11,7 +11,7 @@ router.post(
   '/api/1.0/users',
   userValidationRules(),
   validate,
-  async (req, res) => {
+  async (req, res, next) => {
     const errorMessages = req.validationErrors;
     if (errorMessages !== undefined && Object.keys(errorMessages).length > 0) {
       return res.status(400).json({
@@ -25,18 +25,18 @@ router.post(
         message: req.t('user_created'),
       });
     } catch (err) {
-      return res.status(502).send({ message: req.t(err.message) });
+      return next(err);
     }
   }
 );
 
-router.post('/api/1.0/users/token/:activationtoken', async (req, res) => {
+router.post('/api/1.0/users/token/:activationtoken', async (req, res, next) => {
   const token = req.params.activationtoken;
   try {
     await UserService.activate(token);
     return res.send();
   } catch (err) {
-    return res.status(400).send({ message: req.t(err.message) });
+    return next(err);
   }
 });
 

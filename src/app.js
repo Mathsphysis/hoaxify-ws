@@ -29,4 +29,10 @@ app.use(i18Middleware.handle(i18next));
 
 app.use(userRouter);
 
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  const { status, message } = err;
+  return res.status(status).send({ message: req.t(message) });
+});
+
 module.exports = app;
